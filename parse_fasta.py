@@ -84,8 +84,9 @@ def process_sample(query:Path=None, fasta:Path=None, results_dir:Path=None):
     # parsing
     ## dans la liste des ID de fasta
     for fasta in read_fasta(fasta = fasta):
+        str1 = fasta.id.split(" ")[0].strip()
         ## est ce que je l'ai dans ma liste d'interêt
-        if fasta.id in query_data:
+        if str1 in query_data:
             # je veux stocker l'id et la sequence, mais est ce que ca va garder le format fasta pour le SeqIO.write?
             final_results.append(fasta) # (()) pas ca sinon interpreté tuple
     # write result
