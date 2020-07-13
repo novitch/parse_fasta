@@ -30,7 +30,7 @@ def read_sample_data(query:Path=None):
         raise Exception(f"query file '{query}' does not exist.")
     data = None
     with query.open('rb') as f:
-        data = [line.decode("utf-8") for line in f]
+        data = [line.decode("utf-8").strip() for line in f]
     return data
 
 ##########################################################################
@@ -45,10 +45,9 @@ def read_fasta(fasta:Path=None):
     else:
         if not fasta.is_file():
             raise Exception(f"fasta file '{fasta}' does not exist.")
-        with SeqIO.parse(fasta, "fasta") as f:
+        for seq in SeqIO.parse(fasta, "fasta"):
             #fasta_data = [seq for seq in f]
-            for seq in f:
-                yield seq #créé un générateur , n'est plus une focntion et ne charge pas en mem
+            yield seq #créé un générateur , n'est plus une focntion et ne charge pas en mem
     #return fasta_data
 
 ##########################################################################
@@ -63,20 +62,13 @@ def write_result(output:Path=None, result_data=None):
         SeqIO.write(result_data, output_handle, "fasta")
 
 ##########################################################################
-def process_sample(query:Path=None, fasta:Path=None, results_dir:Path=None):
+def process_sample(query:Path=None, fasta:Path=None, result_output:Path=None):
     """Main process
 
     Create a new fasta file based on query ids.
     """
-
     # result var
     final_results = []
-
-    # fasta
-    #fasta = read_fasta(fasta = fasta) peut pas faire comme ca comme c'est un générateur
-
-    # result file
-    result_output = results_dir.joinpath(f"{output.stem}.fasta")
 
     # sample data
     query_data = read_sample_data(query = query)
@@ -84,15 +76,9 @@ def process_sample(query:Path=None, fasta:Path=None, results_dir:Path=None):
     # parsing
     ## dans la liste des ID de fasta
     for fasta in read_fasta(fasta = fasta):
-        str1 = fasta.id.split(" ")[0].strip()
-        print("1:")
-        print(str1)
         ## est ce que je l'ai dans ma liste d'interêt
-        if str1 in query_data:
-            print("2:")
-            print(str1)
-            #raise
-            input()
+        if fasta.id in query_data:
+            print(fasta.id)
             # je veux stocker l'id et la sequence, mais est ce que ca va garder le format fasta pour le SeqIO.write?
             final_results.append(fasta) # (()) pas ca sinon interpreté tuple
     # write result
@@ -124,13 +110,13 @@ def main(*args, **kwargs):
     """
 
     # create result dir
-    res_dir = write_result(kwargs["output"])
+    # res_dir = write_result(kwargs["output"])
     # exec
     process_sample(query=kwargs["query"],
                    fasta=kwargs["fasta"],
-                   results_dir=res_dir)
+                   result_output=kwargs["output"])
     # yay
-    print(f"fasta selection '{kwargs['query']}' done.")
+    # print(f"fasta selection '{kwargs['query']}' done.")
 
 if __name__ == '__main__':
     # build arg parser, top level parser
